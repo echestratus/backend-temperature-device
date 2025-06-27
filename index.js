@@ -14,7 +14,10 @@ const app = express();
 const PORT = process.env.PORT;
 // const IP_ADDR = process.env.IP_ADDR;
 const corsOptions = {
-    origin: "*",
+    // origin: "*",
+    origin: function (origin, callback) {
+        callback(null, origin); // Reflect the request origin
+      },
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 204,
     credentials: true
