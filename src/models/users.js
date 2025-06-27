@@ -59,7 +59,7 @@ const selectUser = (username) => {
 }
 
 const selectUserById = (id) => {
-    return pool.query(`SELECT * FROM users WHERE id=$1`, [id]);
+    return pool.query(`SELECT id, name, username, email, phone, role, created_at, updated_at  FROM users WHERE id=$1`, [id]);
 }
 
 const deleteUser = (id) => {

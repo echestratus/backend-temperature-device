@@ -5,7 +5,7 @@ const routes = express.Router();
 
 routes.get('/', getAllDevices);
 routes.get('/:id', getDevice);
-routes.post('/register', registerDevice);
+routes.post('/register', protected, registerDevice);
 routes.put('/edit-device/:id', protected, adminEditDevice);
 routes.delete('/:id', protected, deleteDeviceById);
 

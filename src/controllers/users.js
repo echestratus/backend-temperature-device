@@ -8,6 +8,11 @@ const saltRounds = 10;
 
 const getAllUsers = async (req, res, next) => {
     try {
+        const adminRole = req.decoded.data.role; // From auth middleware
+        if (adminRole !== 'admin') {
+            return next(new createError.Unauthorized());
+        }
+
         const orderBy = req.query.orderBy || 'created_at';
         const order = req.query.order || 'DESC';
         const limit = req.query.limit || 2;
@@ -36,6 +41,11 @@ const getAllUsers = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
     try {
+        const adminRole = req.decoded.data.role; // From auth middleware
+        if (adminRole !== 'admin') {
+            return next(new createError.Unauthorized());
+        }
+        
         const id = req.params.id;
         const {rows:[user]} = await selectUserById(id);
         return response(res, "success", 200, "Data fetched successfully", user)

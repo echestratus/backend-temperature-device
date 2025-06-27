@@ -45,6 +45,11 @@ const registerDevice = async (req, res, next) => {
     try {    
         const { id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic } = req.body;
         
+        const adminRole = req.decoded.data.role; // From auth middleware
+        if (adminRole !== 'admin' || adminRole !== 'engineer') {
+            return next(new createError.Unauthorized());
+        }
+
         // Validate id
         if (!id) {
             return next(createError(400, 'id is required'));
@@ -133,6 +138,7 @@ const registerDevice = async (req, res, next) => {
         await insertDevice(data);
         return response(res, "success", 200, "Device added successfully");
     } catch(err) {
+        console.error('Cannot register device: ', err);
         return next(new createError.InternalServerError());
     }
 

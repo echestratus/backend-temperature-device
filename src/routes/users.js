@@ -4,8 +4,8 @@ const {protected} = require('../middlewares/auth');
 const {requestToken} = require('../helper/cookies')
 const routes = express.Router();
 
-routes.get('/', getAllUsers);
-routes.get('/:id', getUser);
+routes.get('/', protected, getAllUsers);
+routes.get('/:id', protected, getUser);
 routes.post('/register', registerUser);
 routes.post('/login', loginUser);
 routes.get('/get-token', requestToken);
