@@ -43,7 +43,7 @@ const getDevice = async (req, res, next) => {
 
 const registerDevice = async (req, res, next) => {
     try {    
-        const { id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic } = req.body;
+        const { id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic } = req.body;
         
         // Validate id
         if (!id) {
@@ -73,27 +73,43 @@ const registerDevice = async (req, res, next) => {
         if (!status) {
             return res.status(400).json({ error: 'status is required' });
         }
-        const allowedStatus = ['unknown', 'normal', 'abnormal'];
+        const allowedStatus = ['offline', 'online'];
         if (!allowedStatus.includes(status)) {
             return next(createError(400, `Status must be one of the following: ${allowedStatus.join(', ')}`));
         }
         
-        // Validate threshold_hum
-        if (!threshold_hum) {
-            return next(createError(400, 'threshold_hum is required'));
+        // Validate hum_min
+        if (!hum_min) {
+            return next(createError(400, 'hum_min is required'));
         }
-        if (typeof threshold_hum !== 'number') {
-            return next(createError(400, 'Invalid type for threshold_hum'));
+        if (typeof hum_min !== 'number') {
+            return next(createError(400, 'Invalid type for hum_min'));
+        }
+
+        // Validate hum_max
+        if (!hum_max) {
+            return next(createError(400, 'hum_max is required'));
+        }
+        if (typeof hum_max !== 'number') {
+            return next(createError(400, 'Invalid type for hum_max'));
         }
         
-        // Validate threshold_temp
-        if (!threshold_temp) {
-            return next(createError(400, 'threshold_temp is required'));
+        // Validate temp_min
+        if (!temp_min) {
+            return next(createError(400, 'temp_min is required'));
         }
-        if (typeof threshold_temp !== 'number') {
+        if (typeof temp_min !== 'number') {
+            return next(createError(400, 'Invalid type for temp_min'));
+        }
+        
+        // Validate temp_max
+        if (!temp_max) {
+            return next(createError(400, 'temp_max is required'));
+        }
+        if (typeof temp_max !== 'number') {
             return next(createError(400, 'Invalid type for threshold_temp'));
         }
-        
+
         // Validate mqtt_topic
         if (!mqtt_topic) {
             return next(createError(400, 'mqtt_topic is required'));
@@ -107,8 +123,10 @@ const registerDevice = async (req, res, next) => {
             longitude: longitude,
             latitude: latitude,
             status: status,
-            threshold_hum: threshold_hum,
-            threshold_temp: threshold_temp,
+            hum_min: hum_min,
+            hum_max: hum_max,
+            temp_min: temp_min,
+            temp_max: temp_max,
             mqtt_topic: mqtt_topic
         }
 
@@ -129,7 +147,7 @@ const adminEditDevice = async (req, res, next) => {
 
         const deviceId = req.params.id;
         
-        const {id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic} = req.body;
+        const {id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic} = req.body;
 
         // Basic validation
         if (id !== undefined && (typeof id !== 'string' || id.trim() === '')) {
@@ -145,11 +163,17 @@ const adminEditDevice = async (req, res, next) => {
         if (status !== undefined && !allowedStatus.includes(status)) {
             return next(createError(400, `status must be one of the following: ${allowedStatus.join(', ')}`));
         }
-        if (threshold_hum !== undefined && typeof threshold_hum !== 'number') {
-            return next(createError(400, 'threshold_hum must be a real number'));
+        if (hum_min !== undefined && typeof hum_min !== 'number') {
+            return next(createError(400, 'hum_min must be a real number'));
         }
-        if (threshold_temp !== undefined && typeof threshold_temp !== 'number') {
-            return next(createError(400, 'threshold_temp must be a real number'));
+        if (hum_max !== undefined && typeof hum_max !== 'number') {
+            return next(createError(400, 'hum_max must be a real number'));
+        }
+        if (temp_min !== undefined && typeof temp_min !== 'number') {
+            return next(createError(400, 'temp_min must be a real number'));
+        }
+        if (temp_max !== undefined && typeof temp_max !== 'number') {
+            return next(createError(400, 'temp_max must be a real number'));
         }
         if (mqtt_topic !== undefined && typeof mqtt_topic !== 'string') {
             return next(createError(400, 'mqtt_topic must be a string.'));
@@ -161,8 +185,10 @@ const adminEditDevice = async (req, res, next) => {
             longitude: longitude ? longitude : undefined,
             latitude: latitude ? latitude : undefined,
             status: status ? status.trim() : undefined,
-            threshold_hum: threshold_hum ? threshold_hum : undefined,
-            threshold_temp: threshold_temp ? threshold_temp : undefined,
+            hum_min: hum_min ? hum_min : undefined,
+            hum_max: hum_max ? hum_max : undefined,
+            temp_min: temp_min ? temp_min : undefined,
+            temp_max: temp_max ? temp_max : undefined,
             mqtt_topic: mqtt_topic ? mqtt_topic.trim() : undefined
         };
     

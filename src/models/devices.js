@@ -5,15 +5,15 @@ const selectAllDevices = (orderBy, order, limit, offset, search) => {
     return pool.query(`SELECT * FROM device WHERE (device.id ILIKE '%' || COALESCE(NULLIF($1, ''), '') || '%') ORDER BY ${orderBy} ${order} LIMIT $2 OFFSET $3`, [search, limit, offset]);
 }
 
-const insertDevice = ({id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic}) => {
+const insertDevice = ({id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic}) => {
     try {
-        return pool.query("INSERT INTO device (id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic) VALUES($1, $2, $3, $4, $5, $6, $7)", [id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic]);
+        return pool.query("INSERT INTO device (id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)", [id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic]);
     } catch (err) {
         return next(err);
     }
 }
 
-const updateDevice = ({deviceId, id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic}) => {
+const updateDevice = ({deviceId, id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic}) => {
     const fields = [];
     const values = [];
     let idx = 1;
@@ -34,13 +34,21 @@ const updateDevice = ({deviceId, id, longitude, latitude, status, threshold_hum,
         fields.push(`status=$${idx++}`);
         values.push(status);
     }
-    if (threshold_hum !== undefined) {
-        fields.push(`threshold_hum=$${idx++}`);
-        values.push(threshold_hum);    
+    if (hum_min !== undefined) {
+        fields.push(`hum_min=$${idx++}`);
+        values.push(hum_min);    
     }
-    if (threshold_temp !== undefined) {
-        fields.push(`threshold_temp=$${idx++}`);
-        values.push(threshold_temp);
+    if (hum_max !== undefined) {
+        fields.push(`hum_max=$${idx++}`);
+        values.push(hum_max);    
+    }
+    if (temp_min !== undefined) {
+        fields.push(`temp_min=$${idx++}`);
+        values.push(temp_min);
+    }
+    if (temp_max !== undefined) {
+        fields.push(`temp_max=$${idx++}`);
+        values.push(temp_max);
     }
     if (mqtt_topic !== undefined) {
         fields.push(`mqtt_topic=$${idx++}`);
@@ -53,7 +61,7 @@ const updateDevice = ({deviceId, id, longitude, latitude, status, threshold_hum,
 
     values.push(deviceId);
 
-    const query = `UPDATE device SET ${fields.join(', ')}, updated_at=CURRENT_TIMESTAMP WHERE id=$${idx} RETURNING id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic, created_at, updated_at`;
+    const query = `UPDATE device SET ${fields.join(', ')}, updated_at=CURRENT_TIMESTAMP WHERE id=$${idx} RETURNING *`;
 
     return pool.query(query, values); 
 }
@@ -63,7 +71,7 @@ const selectDeviceById = (id) => {
 }
 
 const deleteDevice = (id) => {
-    return pool.query(`DELETE FROM device WHERE id=$1 RETURNING id, longitude, latitude, status, threshold_hum, threshold_temp, mqtt_topic, created_at, updated_at`, [id]);
+    return pool.query(`DELETE FROM device WHERE id=$1 RETURNING *`, [id]);
 }
 
 const totalDevice = () => {

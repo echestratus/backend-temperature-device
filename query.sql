@@ -40,3 +40,6 @@ CREATE TABLE device_data (
 INSERT INTO device_new (id, longitude, latitude, status, hum_max, temp_max, mqtt_topic, created_at, updated_at, hum_min, temp_min)
 SELECT id, longitude, latitude, status, hum_max, temp_max, mqtt_topic, created_at, updated_at, hum_min, temp_min
 FROM device;
+
+pg_dump -U postgres -h localhost -Fc -f temperature.dump temperature
+pg_restore --verbose --clean --no-owner --host=pg-19e6bd1a-backend-temperature-device.c.aivencloud.com --port=18525 --username=avnadmin --dbname=defaultdb --password temperature.dump
