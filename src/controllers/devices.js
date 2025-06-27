@@ -147,7 +147,7 @@ const registerDevice = async (req, res, next) => {
 const adminEditDevice = async (req, res, next) => {
     try {
         const adminRole = req.decoded.data.role; // From auth middleware
-        if (adminRole !== 'admin') {
+        if (adminRole !== 'admin' || adminRole !== 'engineer') {
             return next(new createError.Unauthorized());
         }
 
@@ -216,10 +216,11 @@ const adminEditDevice = async (req, res, next) => {
 
 const deleteDeviceById = async(req, res, next) => {
     try {
-        const adminRole = req.decoded.data.role;
-        if (adminRole !== 'admin') {
+        const adminRole = req.decoded.data.role; // From auth middleware
+        if (adminRole !== 'admin' || adminRole !== 'engineer') {
             return next(new createError.Unauthorized());
         }
+        
         const deviceId = req.params.id;
 
         const deletedDevice = await deleteDevice(deviceId);
