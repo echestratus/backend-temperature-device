@@ -12,9 +12,9 @@ const { startMqttService } = require('./src/services/mqttService');
 
 const app = express();
 const PORT = process.env.PORT;
-const IP_ADDR = process.env.IP_ADDR;
+// const IP_ADDR = process.env.IP_ADDR;
 const corsOptions = {
-    origin: "http://192.168.145.211:5173",
+    origin: "*",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 204,
     credentials: true
@@ -40,7 +40,7 @@ app.use((err, req, res, next) => {
     return response(res, status, errorStatus, errorMessage);
 });
 
-app.listen(PORT, IP_ADDR, () => {
+app.listen(PORT, () => {
     console.log(`backend running on PORT ${PORT}`);
     startMqttService();
 });
