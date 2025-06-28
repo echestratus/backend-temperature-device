@@ -30,7 +30,7 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 
 app.use('/test', async (req, res, next) => {
-  await sendWhatsAppAlert('+6282119151861', 'Hello World!');
+  await sendWhatsAppAlert('+6289690757403', 'Hello World!');
   res.send("HELLO WORLD");
 })
 
