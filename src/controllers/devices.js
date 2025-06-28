@@ -46,7 +46,7 @@ const registerDevice = async (req, res, next) => {
         const { id, longitude, latitude, status, hum_min, hum_max, temp_min, temp_max, mqtt_topic } = req.body;
         
         const adminRole = req.decoded.data.role; // From auth middleware
-        if (adminRole !== 'admin' || adminRole !== 'engineer') {
+        if (adminRole !== 'admin' && adminRole !== 'engineer') {
             return next(new createError.Unauthorized());
         }
 
@@ -147,7 +147,7 @@ const registerDevice = async (req, res, next) => {
 const adminEditDevice = async (req, res, next) => {
     try {
         const adminRole = req.decoded.data.role; // From auth middleware
-        if (adminRole !== 'admin' || adminRole !== 'engineer') {
+        if (adminRole !== 'admin' && adminRole !== 'engineer') {
             return next(new createError.Unauthorized());
         }
 
@@ -217,7 +217,7 @@ const adminEditDevice = async (req, res, next) => {
 const deleteDeviceById = async(req, res, next) => {
     try {
         const adminRole = req.decoded.data.role; // From auth middleware
-        if (adminRole !== 'admin' || adminRole !== 'engineer') {
+        if (adminRole !== 'admin' && adminRole !== 'engineer') {
             return next(new createError.Unauthorized());
         }
         
