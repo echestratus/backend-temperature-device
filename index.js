@@ -30,8 +30,8 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 
 app.use('/test', (req, res, next) => {
-    res.send("HELLO WORLD");
-    sendWhatsAppAlert('+6282119151861', 'Hello World!');
+  sendWhatsAppAlert('+6282119151861', 'Hello World!');
+  res.send("HELLO WORLD");
 })
 
 app.use('/users', usersRoutes);
