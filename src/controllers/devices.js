@@ -223,7 +223,7 @@ const deleteDeviceById = async(req, res, next) => {
         
         const deviceId = req.params.id;
 
-        const deletedDevice = await deleteDevice(deviceId);
+        const {rows:deletedDevice} = await deleteDevice(deviceId);
 
         if (!deletedDevice) {
             return next(createError.NotFound('Device Not Found'));
