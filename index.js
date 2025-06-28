@@ -29,8 +29,8 @@ app.use(bodyParser.json());
 app.use(morgan('dev'));
 app.use(cookieParser());
 
-app.use('/test', (req, res, next) => {
-  sendWhatsAppAlert('+6282119151861', 'Hello World!');
+app.use('/test', async (req, res, next) => {
+  await sendWhatsAppAlert('+6282119151861', 'Hello World!');
   res.send("HELLO WORLD");
 })
 
