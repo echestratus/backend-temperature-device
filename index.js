@@ -9,6 +9,7 @@ const { response } = require('./src/helper/response');
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser');
 const { startMqttService } = require('./src/services/mqttService');
+const {sendWhatsAppAlert} = require('./src/services/twilioService')
 
 const app = express();
 const PORT = process.env.PORT;
@@ -30,6 +31,7 @@ app.use(cookieParser());
 
 app.use('/test', (req, res, next) => {
     res.send("HELLO WORLD");
+    sendWhatsAppAlert('+6282119151861', 'Hello World!');
 })
 
 app.use('/users', usersRoutes);
