@@ -10,6 +10,7 @@ const sendWhatsAppAlert = async(toNumber, message) => {
     const messageInstance = await client.messages.create({
       from: 'whatsapp:+14155238886', // Twilio Sandbox WhatsApp number
       to: `whatsapp:${toNumber}`, // Your verified WhatsApp number
+      contentSid: process.env.TWILIO_CONTENT_SID,
       body: message,
     });
     console.log('WhatsApp alert sent:', messageInstance.sid);
