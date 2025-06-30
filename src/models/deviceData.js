@@ -14,7 +14,7 @@ const fetchDeviceData = (deviceId, startTime, endTime, sortOrder = 'desc', limit
     const order = sortOrder.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
   
     // Construct base query and parameters array
-    let query = `SELECT id, device_id, data_hum, data_temp, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at 
+    let query = `SELECT id, device_id, data_hum, data_temp, created_at 
                  FROM device_data 
                  WHERE device_id = $1`;
     const params = [deviceId];
