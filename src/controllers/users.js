@@ -47,7 +47,11 @@ const getUser = async (req, res, next) => {
         }
         
         const id = req.params.id;
-        const {rows:[user]} = await selectUserById(id);
+        const {rows} = await selectUserById(id);
+        if (rows.length === 0) {
+            return next(createError.NotFound("Users Not Found!"));
+        }
+        const user = rows[0];
         return response(res, "success", 200, "Data fetched successfully", user)
     } catch (err) {
         console.error('Error to fetch user: ', err);
