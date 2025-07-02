@@ -4,9 +4,11 @@ const { v4: uuidv4 } = require('uuid');
 const {sendWhatsAppAlert} = require('./twilioService')
 require('dotenv').config();
 
+
 function startMqttService() {
   const clientMqtt = mqtt.connect(process.env.MQTT_BROKER);
-
+  
+  
   clientMqtt.on('connect', () => {
     console.log('Connected to MQTT broker');
     clientMqtt.subscribe('vilert/+/data', {qos: 0}, (err) => {
@@ -17,34 +19,31 @@ function startMqttService() {
     // Subscribe to device status topic if needed for status update
     // clientMqtt.subscribe('vilert/+/status');
   });
+  
+  const recentMessages = new Set();
+  const MESSAGE_CACHE_DURATION = 5 * 60 * 1000; // Cache duration = 5 minutes
+
 
   clientMqtt.on('message', async (topic, message) => {
     try {
+      const msgString = message.toString();
+
+      // Skip duplicate message processing based on message content
+      if (recentMessages.has(msgString)) {
+        console.log('Duplicate MQTT message skipped');
+        return;
+      }
+  
+      // Add message to cache and schedule removal after cache duration
+      recentMessages.add(msgString);
+      setTimeout(() => recentMessages.delete(msgString), MESSAGE_CACHE_DURATION);
+
       const topicParts = topic.split('/');
       const deviceId = topicParts[1];
 
       if (topicParts[2] === 'data') {
-        const payload = JSON.parse(message.toString());
+        const payload = JSON.parse(msgString);
         const { humidity, temperature } = payload;
-
-        // Use current server time for created_at timestamp
-        const now = new Date();
-
-        // Check for duplicate within same second (based on rounded timestamp)
-        const checkQuery = `
-          SELECT 1 FROM device_data
-          WHERE device_id = $1 
-            AND data_hum = $2 
-            AND data_temp = $3 
-            AND date_trunc('second', created_at) = date_trunc('second', $4::timestamp)
-          LIMIT 1
-        `;
-        const checkResult = await pool.query(checkQuery, [deviceId, humidity, temperature, now]);
-
-        if (checkResult.rowCount > 0) {
-          console.log('Duplicate device data found for the same second, skipping insert');
-          return;
-        }
 
         // Insert device data into device_data table
         const id = uuidv4();
