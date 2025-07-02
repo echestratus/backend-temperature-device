@@ -27,6 +27,25 @@ function startMqttService() {
         const payload = JSON.parse(message.toString());
         const { humidity, temperature } = payload;
 
+      // Use current server time for created_at timestamp
+      const now = new Date();
+
+      // Check for duplicate within same second (based on rounded timestamp)
+      const checkQuery = `
+        SELECT 1 FROM device_data
+        WHERE device_id = $1 
+          AND data_hum = $2 
+          AND data_temp = $3 
+          AND date_trunc('second', created_at) = date_trunc('second', $4::timestamp)
+        LIMIT 1
+      `;
+      const checkResult = await pool.query(checkQuery, [deviceId, humidity, temperature, now]);
+
+      if (checkResult.rowCount > 0) {
+        console.log('Duplicate device data found for the same second, skipping insert');
+        return;
+      }
+
         // Insert device data into device_data table
         const id = uuidv4();
         const insertQuery = 'INSERT INTO device_data (id, device_id, data_hum, data_temp) VALUES ($1, $2, $3, $4)';
