@@ -2,9 +2,10 @@ const mqtt = require('mqtt');
 const { pool } = require('../configs/db'); // Adjust relative path accordingly
 const { v4: uuidv4 } = require('uuid');
 const {sendWhatsAppAlert} = require('./twilioService')
+require('dotenv').config();
 
 function startMqttService() {
-  const clientMqtt = mqtt.connect('mqtts://broker.emqx.io:8883/mqtt');
+  const clientMqtt = mqtt.connect(process.env.MQTT_BROKER);
 
   clientMqtt.on('connect', () => {
     console.log('Connected to MQTT broker');
