@@ -10,10 +10,10 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   database: process.env.DB_DATABASE,
-  ssl: {
-    rejectUnauthorized: true, // Enable full verification
-    ca: caCert
-  }
+  // ssl: {
+  //   rejectUnauthorized: true, // Enable full verification
+  //   ca: caCert
+  // }
 });
 
 module.exports = {
