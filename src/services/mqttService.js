@@ -34,18 +34,21 @@ function startMqttService() {
 
         console.log(`Inserted data for device ${deviceId}: Humidity=${humidity}, Temp=${temperature}`);
 
-        // Update device status to 'online'
-        const updateStatusQuery = 'UPDATE device SET status = $1 WHERE id = $2';
-        await pool.query(updateStatusQuery, ['online', deviceId]);
-
         // Fetch thresholds for this device
-        const thresholdQuery = 'SELECT hum_min, hum_max, temp_min, temp_max FROM device WHERE id = $1';
+        const thresholdQuery = 'SELECT hum_min, hum_max, temp_min, temp_max, status FROM device WHERE id = $1';
         const thresholdResult = await pool.query(thresholdQuery, [deviceId]);
         if (thresholdResult.rowCount === 0) {
           console.warn(`Device ${deviceId} not found in device table for threshold check`);
           return;
         }
-        const { hum_min, hum_max, temp_min, temp_max } = thresholdResult.rows[0];
+        const { hum_min, hum_max, temp_min, temp_max, status } = thresholdResult.rows[0];
+
+        // Update device status to 'online'
+        if (status !== 'online') {
+          const updateStatusQuery = 'UPDATE device SET status = $1 WHERE id = $2';
+          await pool.query(updateStatusQuery, ['online', deviceId]);
+        }
+
 
         // Check if humidity or temperature exceed thresholds
         let alertMsg = '';
