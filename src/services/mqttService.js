@@ -19,41 +19,33 @@ function startMqttService() {
     // Subscribe to device status topic if needed for status update
     // clientMqtt.subscribe('vilert/+/status');
   });
-  
-  const recentMessages = new Set();
-  const MESSAGE_CACHE_DURATION = 5 * 60 * 1000; // Cache duration = 5 minutes
 
 
-  clientMqtt.on('message', async (topic, message) => {
+  clientMqtt.on("message", async (topic, message) => {
     try {
       const msgString = message.toString();
 
-      // Skip duplicate message processing based on message content
-      if (recentMessages.has(msgString)) {
-        console.log('Duplicate MQTT message skipped');
-        return;
-      }
-  
-      // Add message to cache and schedule removal after cache duration
-      recentMessages.add(msgString);
-      setTimeout(() => recentMessages.delete(msgString), MESSAGE_CACHE_DURATION);
-
-      const topicParts = topic.split('/');
+      const topicParts = topic.split("/");
       const deviceId = topicParts[1];
 
-      if (topicParts[2] === 'data') {
+      if (topicParts[2] === "data") {
         const payload = JSON.parse(msgString);
         const { humidity, temperature } = payload;
 
         // Insert device data into device_data table
-        const id = uuidv4();
-        const insertQuery = 'INSERT INTO device_data (id, device_id, data_hum, data_temp) VALUES ($1, $2, $3, $4)';
+        // const id = uuidv4();
+        const now = new Date();
+        now.setMilliseconds(0); // Remove milisecond
+        const timestampStr = now.toISOString().replace(/[:.TZ]/g, "-");
+        const id = `${deviceId}_${timestampStr}`;
+
+        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING";
         await pool.query(insertQuery, [id, deviceId, humidity, temperature]);
 
         console.log(`Inserted data for device ${deviceId}: Humidity=${humidity}, Temp=${temperature}`);
 
         // Fetch thresholds for this device
-        const thresholdQuery = 'SELECT hum_min, hum_max, temp_min, temp_max, status FROM device WHERE id = $1';
+        const thresholdQuery = "SELECT hum_min, hum_max, temp_min, temp_max, status FROM device WHERE id = $1";
         const thresholdResult = await pool.query(thresholdQuery, [deviceId]);
         if (thresholdResult.rowCount === 0) {
           console.warn(`Device ${deviceId} not found in device table for threshold check`);
@@ -62,14 +54,13 @@ function startMqttService() {
         const { hum_min, hum_max, temp_min, temp_max, status } = thresholdResult.rows[0];
 
         // Update device status to 'online'
-        if (status !== 'online') {
-          const updateStatusQuery = 'UPDATE device SET status = $1 WHERE id = $2';
-          await pool.query(updateStatusQuery, ['online', deviceId]);
+        if (status !== "online") {
+          const updateStatusQuery = "UPDATE device SET status = $1 WHERE id = $2";
+          await pool.query(updateStatusQuery, ["online", deviceId]);
         }
 
-
         // Check if humidity or temperature exceed thresholds
-        let alertMsg = '';
+        let alertMsg = "";
         if (hum_min !== null && humidity < hum_min) {
           alertMsg += `Humidity (${humidity}) is below minimum (${hum_min}).\n`;
         }
@@ -86,14 +77,13 @@ function startMqttService() {
         if (alertMsg) {
           alertMsg = `Alert for device ${deviceId}:\n` + alertMsg;
           // Send WhatsApp alert
-          await sendWhatsAppAlert('+6282119151861', alertMsg);
+          await sendWhatsAppAlert("+6282119151861", alertMsg);
         }
       }
 
       // You can add code here to handle status topic if you implement device status updates by LWT or manual publishing
-
     } catch (error) {
-      console.error('Error processing MQTT message:', error);
+      console.error("Error processing MQTT message:", error);
     }
   });
 
@@ -103,3 +93,4 @@ function startMqttService() {
 }
 
 module.exports = { startMqttService };
+
