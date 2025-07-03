@@ -49,8 +49,29 @@ const fetchDeviceData = (deviceId, startTime, endTime, sortOrder = 'desc', limit
     }
 }
 
-const totalDeviceData = (deviceId) => {
-  return pool.query("SELECT COUNT(*) FROM device_data WHERE device_id=$1", [deviceId]);
+const totalDeviceData = (deviceId, startTime, endTime) => {
+  // Construct base query and parameters array
+  let query = `SELECT COUNT(*) 
+                FROM device_data 
+                WHERE device_id = $1`;
+  const params = [deviceId];
+  let paramIndex = 2;
+
+  // Add time range filtering if given
+  if (startTime) {
+    query += ` AND created_at >= $${paramIndex++}`;
+    params.push(startTime);
+  }
+  if (endTime) {
+    query += ` AND created_at <= $${paramIndex++}`;
+    params.push(endTime);
+  }
+
+  try {
+    return pool.query(query, params);
+  } catch (error) {
+    console.error('Error to fetch device data: ', error);
+  }
 }
   
   module.exports = {

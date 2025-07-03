@@ -15,8 +15,7 @@ const getAllDeviceData = async (req, res, next) => {
     }
     const {rows} = await fetchDeviceData(deviceId, startTime, endTime, sort, limit, offset);
 
-    // const totalData = parseInt((await totalDeviceData(deviceId)).rows[0].count);
-    const totalData = rows.length;
+    const totalData = parseInt((await totalDeviceData(deviceId, startTime, endTime)).rows[0].count);
     const totalPage = Math.ceil(totalData / limit);
     const pagination = {
       sort,
