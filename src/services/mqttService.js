@@ -20,6 +20,14 @@ function startMqttService() {
     // clientMqtt.subscribe('vilert/+/status');
   });
 
+  const COOLDOWN_PERIOD_MS = 10 * 60 * 1000; // 10 minutes cooldown
+  const alertState = {};
+
+  // List of phone numbers to send alerts
+  const alertRecipients = [
+    "+6282119151861",
+    "+6281213644007"  // Add new number(s) here
+  ];
 
   clientMqtt.on("message", async (topic, message) => {
     try {
@@ -75,10 +83,32 @@ function startMqttService() {
         }
 
         if (alertMsg) {
-          alertMsg = `Alert for device ${deviceId}:\n` + alertMsg;
-          // Send WhatsApp alert
-          await sendWhatsAppAlert("+6282119151861", alertMsg);
+          const nowAlertMsg = Date.now();
+      
+          for (const toNumber of alertRecipients) {
+            const alertKey = `${deviceId}_${toNumber}`; // Unique cooldown key per device per number
+      
+            if (!alertState[alertKey] || (nowAlertMsg - alertState[alertKey] > COOLDOWN_PERIOD_MS)) {
+              alertState[alertKey] = nowAlertMsg;
+              try {
+                await sendWhatsAppAlert(toNumber, alertMsg);
+              } catch (err) {
+                console.error(`Failed to send WhatsApp alert to ${toNumber}:`, err);
+              }
+            } else {
+              console.log(`Alert to ${toNumber} for device ${deviceId} suppressed due to cooldown.`);
+            }
+          }
+        } else {
+          // Reset alert states if conditions back to normal
+          for (const toNumber of alertRecipients) {
+            const alertKey = `${deviceId}_${toNumber}`;
+            if (alertState[alertKey]) {
+              delete alertState[alertKey];
+            }
+          }
         }
+
       }
 
       // You can add code here to handle status topic if you implement device status updates by LWT or manual publishing
