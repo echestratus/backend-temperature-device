@@ -47,10 +47,10 @@ const fetchDeviceData = (deviceId, startTime, endTime, sortOrder = 'desc', limit
     } catch (error) {
       console.error('Error to fetch device data: ', error);
     }
-  }
+}
 
-  const totalDeviceData = (deviceId) => {
-    return pool.query("SELECT COUNT(*) FROM device_data WHERE device_id=$1", [deviceId]);
+const totalDeviceData = (deviceId) => {
+  return pool.query("SELECT COUNT(*) FROM device_data WHERE device_id=$1", [deviceId]);
 }
   
   module.exports = {
