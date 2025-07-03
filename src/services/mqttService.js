@@ -36,7 +36,7 @@ function startMqttService() {
         // const id = uuidv4();
         const now = new Date();
         now.setMilliseconds(0); // Remove milisecond
-        const timestampStr = now.toISOString().replace(/[:.TZ]/g, "-");
+        const timestampStr = now.toISOString().replace(/[:.T]/g, "-").replace(/[Z]/g, "");
         const id = `${deviceId}_${timestampStr}`;
 
         const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING";
