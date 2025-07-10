@@ -9,7 +9,8 @@ const { response } = require('./src/helper/response');
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser');
 const { startMqttService } = require('./src/services/mqttService');
-const {sendWhatsAppAlert} = require('./src/services/twilioService')
+const {sendWhatsAppAlert} = require('./src/services/twilioService');
+const {sendEmailAlert} = require('./src/services/gmailService');
 
 const app = express();
 const PORT = process.env.PORT;
@@ -30,7 +31,8 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 
 app.use('/test', async (req, res, next) => {
-  await sendWhatsAppAlert('+6289690757403', 'Hello World!');
+  // await sendWhatsAppAlert('+6289690757403', 'Hello World!');
+  await sendEmailAlert('farhanchn13@gmail.com', 'Preparing the Position of CTO', 'Dear All,\n I want to inform you that the position of CTO is on vacant, therefore I want you to join the meeting to choose the interim CTO\nThanks in advance');
   res.send("HELLO WORLD");
 })
 

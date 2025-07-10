@@ -1,7 +1,8 @@
 const mqtt = require('mqtt');
 const { pool } = require('../configs/db'); // Adjust relative path accordingly
 const { v4: uuidv4 } = require('uuid');
-const {sendWhatsAppAlert} = require('./twilioService')
+const {sendWhatsAppAlert} = require('./twilioService');
+const {sendEmailAlert} = require('./gmailService');
 require('dotenv').config();
 
 
@@ -25,9 +26,15 @@ function startMqttService() {
 
   // List of phone numbers to send alerts
   const alertRecipients = [
-    "+6282119151861",
-    "+6281213644007"  // Add new number(s) here
-  ];
+    {
+      toEmail: "farhanchn13@gmail.com",
+      toNumber: "+6282119151861"
+    },
+    {
+      toEmail: "tubagus.dylanr@gmail.com",
+      toNumber: "+6281213644007"  
+    } 
+  ]; // Add new email(s) or number(s) here
 
   clientMqtt.on("message", async (topic, message) => {
     try {
@@ -85,24 +92,25 @@ function startMqttService() {
         if (alertMsg) {
           const nowAlertMsg = Date.now();
       
-          for (const toNumber of alertRecipients) {
-            const alertKey = `${deviceId}_${toNumber}`; // Unique cooldown key per device per number
+          for (const recipient of alertRecipients) {
+            const alertKey = `${deviceId}_${recipient.toNumber}`; // Unique cooldown key per device per number
       
             if (!alertState[alertKey] || (nowAlertMsg - alertState[alertKey] > COOLDOWN_PERIOD_MS)) {
               alertState[alertKey] = nowAlertMsg;
               try {
-                await sendWhatsAppAlert(toNumber, alertMsg);
+                await sendWhatsAppAlert(recipient.toNumber, alertMsg);
+                await sendEmailAlert(recipient.toEmail, `Alert from ${deviceId}`, alertMsg);
               } catch (err) {
-                console.error(`Failed to send WhatsApp alert to ${toNumber}:`, err);
+                console.error(`Failed to send WhatsApp alert to ${recipient.toNumber}:`, err);
               }
             } else {
-              console.log(`Alert to ${toNumber} for device ${deviceId} suppressed due to cooldown.`);
+              console.log(`Alert to ${recipient.toNumber} for device ${deviceId} suppressed due to cooldown.`);
             }
           }
         } else {
           // Reset alert states if conditions back to normal
-          for (const toNumber of alertRecipients) {
-            const alertKey = `${deviceId}_${toNumber}`;
+          for (const recipient of alertRecipients) {
+            const alertKey = `${deviceId}_${recipient.toNumber}`;
             if (alertState[alertKey]) {
               delete alertState[alertKey];
             }
