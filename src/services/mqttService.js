@@ -21,7 +21,7 @@ function startMqttService() {
     // clientMqtt.subscribe('vilert/+/status');
   });
 
-  const COOLDOWN_PERIOD_MS = 10 * 60 * 1000; // 10 minutes cooldown
+  const COOLDOWN_PERIOD_MS = 2 * 60 * 1000; // 2 minutes cooldown
   const alertState = {};
 
   // List of phone numbers to send alerts
