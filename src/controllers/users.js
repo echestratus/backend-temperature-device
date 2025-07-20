@@ -191,6 +191,17 @@ const loginUser = async (req, res, next) => {
     }
 }
 
+const logoutUser = async (req, res, next) => {
+  // Clear the 'token' cookie
+  res.clearCookie('token', {
+    httpOnly: true,     // Should match your cookie's httpOnly setting
+    secure: false, // process.env.NODE_ENV === 'production'
+    sameSite: 'lax', // or your configured sameSite policy
+  });
+
+  return response(res, 'success', 200, 'Logged out successfully');
+} 
+
 const editUserProfile = async (req, res, next) => {
     try {
         const id = req.decoded.data.id; // From auth middleware
@@ -343,5 +354,6 @@ module.exports = {
     editUserProfile,
     adminEditUserProfile,
     deleteUserbyId,
-    getUser
+    getUser,
+    logoutUser
 }
