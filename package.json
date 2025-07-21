@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "mqtt": "^5.13.1",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.4",
     "pg": "^8.15.6",
     "twilio": "^5.7.1",

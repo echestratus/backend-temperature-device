@@ -3,6 +3,7 @@ const { pool } = require('../configs/db'); // Adjust relative path accordingly
 const { v4: uuidv4 } = require('uuid');
 const {sendWhatsAppAlert} = require('./twilioService');
 const {sendEmailAlert} = require('./gmailService');
+const {sendTelegramAlert} = require('./telegramService');
 require('dotenv').config();
 
 
@@ -28,11 +29,13 @@ function startMqttService() {
   const alertRecipients = [
     {
       toEmail: "farhanchn13@gmail.com",
-      toNumber: "+6282119151861"
+      toNumber: "+6282119151861",
+      toTelegramChatId: "1074521468"
     },
     {
       toEmail: "tubagus.dylanr@gmail.com",
-      toNumber: "+6281213644007"  
+      toNumber: "+6281213644007",
+      toTelegramChatId: "5372153323"
     } 
   ]; // Add new email(s) or number(s) here
 
@@ -100,6 +103,9 @@ function startMqttService() {
               try {
                 await sendWhatsAppAlert(recipient.toNumber, alertMsg);
                 await sendEmailAlert(recipient.toEmail, `Alert from ${deviceId}`, alertMsg);
+                if (recipient.toTelegramChatId) {
+                  await sendTelegramAlert(recipient.toTelegramChatId, alertMsg);
+                }
               } catch (err) {
                 console.error(`Failed to send WhatsApp alert to ${recipient.toNumber}:`, err);
               }
