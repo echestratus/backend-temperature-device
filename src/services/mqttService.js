@@ -107,7 +107,7 @@ function startMqttService() {
                   await sendTelegramAlert(recipient.toTelegramChatId, alertMsg);
                 }
               } catch (err) {
-                console.error(`Failed to send WhatsApp alert to ${recipient.toNumber}:`, err);
+                console.error(`Failed to send alert to ${recipient.toNumber} ${recipient.toEmail} ${recipient.toTelegramChatId}:`, err);
               }
             } else {
               console.log(`Alert to ${recipient.toNumber} for device ${deviceId} suppressed due to cooldown.`);

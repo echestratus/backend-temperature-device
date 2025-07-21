@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 require('dotenv').config();
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -19,18 +19,12 @@ const sendTelegramAlert = async(chatId, message) => {
   };
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-    if (!data.ok) {
-      throw new Error(`Telegram API error: ${data.description}`);
+    const response = await axios.post(url, payload);
+    if (!response.data.ok) {
+      throw new Error(`Telegram API error: ${response.data.description}`);
     }
     console.log('Telegram alert sent successfully');
-    return data;
+    return response.data;
   } catch (error) {
     console.error('Failed to send telegram alert:', error);
     throw error;
