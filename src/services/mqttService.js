@@ -36,7 +36,12 @@ function startMqttService() {
       toEmail: "tubagus.dylanr@gmail.com",
       toNumber: "+6281213644007",
       toTelegramChatId: "5372153323"
-    } 
+    }, 
+    {
+      toEmail: "",
+      toNumber: "",
+      toTelegramChatId: "6223965001"
+    }
   ]; // Add new email(s) or number(s) here
 
   clientMqtt.on("message", async (topic, message) => {
@@ -101,8 +106,12 @@ function startMqttService() {
             if (!alertState[alertKey] || (nowAlertMsg - alertState[alertKey] > COOLDOWN_PERIOD_MS)) {
               alertState[alertKey] = nowAlertMsg;
               try {
-                await sendWhatsAppAlert(recipient.toNumber, alertMsg);
-                await sendEmailAlert(recipient.toEmail, `Alert from ${deviceId}`, alertMsg);
+                if (recipient.toNumber) {
+                  await sendWhatsAppAlert(recipient.toNumber, alertMsg);
+                }
+                if (recipient.toEmail) {
+                  await sendEmailAlert(recipient.toEmail, `Alert from ${deviceId}`, alertMsg);
+                }
                 if (recipient.toTelegramChatId) {
                   await sendTelegramAlert(recipient.toTelegramChatId, alertMsg);
                 }
