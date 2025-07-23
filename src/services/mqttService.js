@@ -103,10 +103,13 @@ function startMqttService() {
         // Extract day, month, and year
         const [day, month, year] = datePart.split("/").map(Number);
 
-        // Combine into a Date object
-        const date = new Date(year, month - 1, day, ...timePart.split(":").map(Number));
+        // Extract hours, minutes, and seconds
+        const [hours, minutes, seconds] = timePart.split(":").map(Number);
 
-        // Convert to ISO string
+        // Create a UTC Date object
+        const date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+
+        // Convert to ISO string (already UTC)
         const isoString = date.toISOString();
 
         const timestampStr = isoString.replace(/[:.T]/g, "-").replace(/[Z]/g, "");
@@ -115,7 +118,7 @@ function startMqttService() {
 
         const id = `${deviceId}_${timestampStr}`;
 
-        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp, created_at) VALUES ($1, $2, $3, $4, $5::timestamp) ON CONFLICT DO NOTHING";
+        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp, created_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING";
         await pool.query(insertQuery, [id, deviceId, humidity, temperature, isoString]);
 
         console.log(`Inserted data for device ${deviceId}: Humidity=${humidity}, Temp=${temperature}`);
