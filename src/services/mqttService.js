@@ -106,10 +106,11 @@ function startMqttService() {
         // Combine into a Date object
         const date = new Date(year, month - 1, day, ...timePart.split(":").map(Number));
 
-        const timestampStr = date.toISOString().replace(/[:.T]/g, "-").replace(/[Z]/g, "");
-
         // Convert to ISO string
         const isoString = date.toISOString();
+        
+        const timestampStr = isoString.replace(/[:.T]/g, "-").replace(/[Z]/g, "");
+
         
 
         const id = `${deviceId}_${timestampStr}`;
