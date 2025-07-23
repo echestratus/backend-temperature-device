@@ -108,15 +108,15 @@ function startMqttService() {
 
         // Convert to ISO string
         const isoString = date.toISOString();
-        
+
         const timestampStr = isoString.replace(/[:.T]/g, "-").replace(/[Z]/g, "");
 
         
 
         const id = `${deviceId}_${timestampStr}`;
 
-        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp, created_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING";
-        await pool.query(insertQuery, [id, deviceId, humidity, temperature, isoString]);
+        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp, created_at) VALUES ($1, $2, $3, $4, TO_TIMESTAMP($5, 'DD/MM/YYYY HH24:MI:SS')) ON CONFLICT DO NOTHING";
+        await pool.query(insertQuery, [id, deviceId, humidity, temperature, timestamp]);
 
         console.log(`Inserted data for device ${deviceId}: Humidity=${humidity}, Temp=${temperature}`);
 
