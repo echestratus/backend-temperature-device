@@ -24,6 +24,7 @@ function startMqttService() {
 
   const COOLDOWN_PERIOD_MS = 2 * 60 * 1000; // 2 minutes cooldown
   const alertState = {};
+  const lastMessageTimes = {};
 
   // List of phone numbers to send alerts
   const alertRecipients = [
@@ -44,6 +45,34 @@ function startMqttService() {
     }
   ]; // Add new email(s) or number(s) here
 
+  const OFFLINE_THRESHOLD_MS = 60 * 1000; // 1 minute
+
+  setInterval(async () => {
+    const now = Date.now();
+
+    // For each device last seen, check how long ago it sent data
+    for (const deviceId in lastMessageTimes) {
+      if (now - lastMessageTimes[deviceId] > OFFLINE_THRESHOLD_MS) {
+        try {
+          // Update device status to offline if it is not offline yet
+          const res = await pool.query("SELECT status FROM device WHERE id = $1", [deviceId]);
+          const currentStatus = res.rowCount > 0 ? res.rows[0].status : null;
+
+          if (currentStatus && currentStatus !== "offline") {
+            await pool.query("UPDATE device SET status = $1 WHERE id = $2", ["offline", deviceId]);
+            console.log(`Device ${deviceId} status set to offline due to inactivity.`);
+          }
+
+          // Optionally, remove it from tracking? Or keep to check again later
+          // delete lastMessageTimes[deviceId];
+        } catch (err) {
+          console.error(`Failed to update status to offline for device ${deviceId}:`, err);
+        }
+      }
+    }
+  }, 30 * 1000); // Check every 30 seconds
+
+
   clientMqtt.on("message", async (topic, message) => {
     try {
       const msgString = message.toString();
@@ -53,17 +82,40 @@ function startMqttService() {
 
       if (topicParts[2] === "data") {
         const payload = JSON.parse(msgString);
-        const { humidity, temperature } = payload;
+        const { timestamp, humidity, temperature } = payload;
+
+        //Update lastMessageTimes timestamp every time receive a message for a device
+        lastMessageTimes[deviceId] = Date.now();
 
         // Insert device data into device_data table
+
+
         // const id = uuidv4();
-        const now = new Date();
-        now.setMilliseconds(0); // Remove milisecond
-        const timestampStr = now.toISOString().replace(/[:.T]/g, "-").replace(/[Z]/g, "");
+
+        //ID from timestamp
+        // const now = new Date();
+        // now.setMilliseconds(0); // Remove milisecond
+        // const timestampStr = now.toISOString().replace(/[:.T]/g, "-").replace(/[Z]/g, "");
+
+        // Split the date and time
+        const [datePart, timePart] = timestamp.split(" ");
+
+        // Extract day, month, and year
+        const [day, month, year] = datePart.split("/").map(Number);
+
+        // Combine into a Date object
+        const date = new Date(year, month - 1, day, ...timePart.split(":").map(Number));
+
+        const timestampStr = date.toISOString().replace(/[:.T]/g, "-").replace(/[Z]/g, "");
+
+        // Convert to ISO string
+        const isoString = date.toISOString();
+        
+
         const id = `${deviceId}_${timestampStr}`;
 
-        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING";
-        await pool.query(insertQuery, [id, deviceId, humidity, temperature]);
+        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp, created_at) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING";
+        await pool.query(insertQuery, [id, deviceId, humidity, temperature, isoString]);
 
         console.log(`Inserted data for device ${deviceId}: Humidity=${humidity}, Temp=${temperature}`);
 
@@ -107,13 +159,13 @@ function startMqttService() {
               alertState[alertKey] = nowAlertMsg;
               try {
                 if (recipient.toNumber) {
-                  await sendWhatsAppAlert(recipient.toNumber, alertMsg);
+                  await sendWhatsAppAlert(recipient.toNumber, `Alert from ${deviceId}: ${alertMsg}`);
                 }
                 if (recipient.toEmail) {
                   await sendEmailAlert(recipient.toEmail, `Alert from ${deviceId}`, alertMsg);
                 }
                 if (recipient.toTelegramChatId) {
-                  await sendTelegramAlert(recipient.toTelegramChatId, alertMsg);
+                  await sendTelegramAlert(recipient.toTelegramChatId, `Alert from ${deviceId}: ${alertMsg}`);
                 }
               } catch (err) {
                 console.error(`Failed to send alert to ${recipient.toNumber} ${recipient.toEmail} ${recipient.toTelegramChatId}:`, err);
