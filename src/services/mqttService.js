@@ -115,8 +115,8 @@ function startMqttService() {
 
         const id = `${deviceId}_${timestampStr}`;
 
-        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp, created_at) VALUES ($1, $2, $3, $4, TO_TIMESTAMP($5, 'DD/MM/YYYY HH24:MI:SS')) ON CONFLICT DO NOTHING";
-        await pool.query(insertQuery, [id, deviceId, humidity, temperature, timestamp]);
+        const insertQuery = "INSERT INTO device_data (id, device_id, data_hum, data_temp, created_at) VALUES ($1, $2, $3, $4, $5::timestamp) ON CONFLICT DO NOTHING";
+        await pool.query(insertQuery, [id, deviceId, humidity, temperature, isoString]);
 
         console.log(`Inserted data for device ${deviceId}: Humidity=${humidity}, Temp=${temperature}`);
 
